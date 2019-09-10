@@ -1,0 +1,18 @@
+[package]
+name = "amethyst_nphysics"
+version = "0.1.0"
+authors = ["Andrea Catania"]
+edition = "2018"
+description = "The NPhysics engine `Phythyst` backend"
+keywords = ["game", "engine", "physics", "3d", "amethyst"]
+categories = ["physics", "physics::engine"]
+license = "MIT/Apache-2.0"
+
+[dependencies]
+amethyst_core = { path = "../amethyst_core", version = "0.7" }
+amethyst_phythyst = {path = "../amethyst_phythyst", version = "0.1.0"}
+log = "0.4.6"
+ncollide3d = "0.20.1"
+nphysics3d = "0.12.2"
+generational-arena = {git = "https://github.com/AndreaCatania/generational-arena", branch = "opaq"} # TODO fix this
+alga = { version = "0.9.0", default-features = false }
