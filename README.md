@@ -14,7 +14,5 @@ let game_data = GameDataBuilder::default()
 
 You can use this trought [Phythyst].
 
-
-
 [NPhysics]: https://nphysics.org/
 [Phythyst]: https://github.com/AndreaCatania/amethyst_phythyst
