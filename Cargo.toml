@@ -9,8 +9,9 @@ categories = ["physics", "physics::engine"]
 license = "MIT/Apache-2.0"
 
 [dependencies]
-amethyst_core = { path = "../amethyst_core", version = "0.7" }
-amethyst_phythyst = {path = "../amethyst_phythyst", version = "0.1.0"}
+amethyst_core = "0.7"
+#amethyst_phythyst = {path = "../amethyst_phythyst", version = "0.1.0"}
+amethyst_phythyst = {git = "https://github.com/AndreaCatania/amethyst_phythyst.git", branch = "master"}
 log = "0.4.6"
 ncollide3d = "0.20.1"
 nphysics3d = "0.12.2"
