@@ -1,4 +1,9 @@
 # NPhysics Amethyst backend
+![Build Status] ![License] ![Line of code][loc]
+
+[Build Status]: https://travis-ci.com/AndreaCatania/amethyst_nphysics.svg?branch=master
+[License]: https://img.shields.io/badge/License-MIT-green.svg
+[loc]: https://tokei.rs/b1/github/andreacatania/amethyst_nphysics?category=code
 
 This crate is the [NPhysics] integration of the [Phythyst] interface.
 
