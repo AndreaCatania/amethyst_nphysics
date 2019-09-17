@@ -1,5 +1,5 @@
 use amethyst_core::math::Isometry3;
-use amethyst_phythyst::{servers::JointDesc, PtReal};
+use amethyst_physics::{servers::JointDesc, PtReal};
 use nphysics3d::{joint::JointConstraint as NpJointConstraint, object::BodySet as NpBodySet};
 
 use crate::storage::StoreKey;

@@ -1,4 +1,4 @@
-use amethyst_phythyst::PtReal;
+use amethyst_physics::PtReal;
 use nphysics3d::{
     joint::{JointConstraint as NpJointConstraint, JointConstraintSet as NpJointConstraintSet},
     object::{BodyPartHandle as NpBodyPartHandle, BodySet as NpBodySet},
@@ -10,6 +10,7 @@ use crate::{
 };
 
 #[allow(missing_debug_implementations)]
+#[allow(clippy::type_complexity)]
 pub struct JointStorage<N: PtReal, S: NpBodySet<N>> {
     storage: Storage<Joint<N, S>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
@@ -144,6 +145,7 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
         }
     }
 
+    #[allow(clippy::type_complexity)]
     fn pop_insertion_event(
         &mut self,
     ) -> Option<(
@@ -154,6 +156,7 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
         self.inserted.pop()
     }
 
+    #[allow(clippy::type_complexity)]
     fn pop_removal_event(
         &mut self,
     ) -> Option<(

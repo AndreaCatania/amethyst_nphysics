@@ -1,6 +1,6 @@
 use std::{cell::UnsafeCell, sync::Mutex};
 
-use amethyst_phythyst::PtReal;
+use amethyst_physics::PtReal;
 use generational_arena::{Iter, IterMut};
 use nphysics3d::object::{Body as NpBody, BodySet};
 

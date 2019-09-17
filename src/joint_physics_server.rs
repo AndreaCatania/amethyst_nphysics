@@ -1,5 +1,5 @@
 use amethyst_core::math::Isometry3;
-use amethyst_phythyst::{
+use amethyst_physics::{
     objects::*,
     servers::{JointDesc, JointPhysicsServerTrait},
     PtReal,

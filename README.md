@@ -5,19 +5,19 @@
 [License]: https://img.shields.io/badge/License-MIT-green.svg
 [loc]: https://tokei.rs/b1/github/andreacatania/amethyst_nphysics?category=code
 
-This crate is the [NPhysics] integration of the [Phythyst] interface.
+This crate is the [NPhysics] integration of the [amethyst_physics] interface.
 
 To use this backend you have to specify the class `NPhysicsBackend` in the `PhysicsBundle` as shown below.
 
 ```rust
-use amethyst::phythyst::PhysicsBundle;
+use amethyst_physics::PhysicsBundle;
 use amethyst::amethyst_nphysics::NPhysicsBackend;
 
 let game_data = GameDataBuilder::default()
     .with_bundle(PhysicsBundle::<f32, NPhysicsBackend>::new()).unwrap()
 ```
 
-You can use this trought [Phythyst].
+You can use this trought [amethyst_physics].
 
 [NPhysics]: https://nphysics.org/
-[Phythyst]: https://github.com/AndreaCatania/amethyst_phythyst
+[amethyst_physics]: https://github.com/AndreaCatania/amethyst_physics

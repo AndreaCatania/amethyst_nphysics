@@ -1,7 +1,7 @@
 use std::sync::RwLock;
 
 use amethyst_core::math::Vector3;
-use amethyst_phythyst::{
+use amethyst_physics::{
     objects::*,
     servers::{OverlapEvent, WorldPhysicsServerTrait},
     PtReal,

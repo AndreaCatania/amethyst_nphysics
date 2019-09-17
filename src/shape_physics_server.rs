@@ -1,4 +1,4 @@
-use amethyst_phythyst::{
+use amethyst_physics::{
     objects::*,
     servers::{ShapeDesc, ShapePhysicsServerTrait},
     PtReal,

@@ -1,4 +1,4 @@
-use amethyst_phythyst::PtReal;
+use amethyst_physics::PtReal;
 use nphysics3d::{
     force_generator::{
         ForceGenerator as NpForceGenerator, ForceGeneratorSet as NpForceGeneratorSet,

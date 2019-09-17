@@ -1,5 +1,5 @@
 use amethyst_core::{ecs::Entity, math::Isometry3};
-use amethyst_phythyst::{servers::OverlapEvent, PtReal};
+use amethyst_physics::{servers::OverlapEvent, PtReal};
 use nphysics3d::{
     material::{BasicMaterial, MaterialHandle},
     object::{Body as NpBody, RigidBody as NpRigidBody},

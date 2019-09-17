@@ -1,5 +1,5 @@
 use amethyst_core::math::{convert, Unit, Vector3};
-use amethyst_phythyst::{servers::ShapeDesc, PtReal};
+use amethyst_physics::{servers::ShapeDesc, PtReal};
 use ncollide3d::shape::{
     Ball as NcBall, Capsule as NcCapsule, Compound as NcCompound, ConvexHull as NcConvexHull,
     Cuboid as NcCuboid, Plane as NcPlane, ShapeHandle as NcShapeHandle, TriMesh as NcTriMesh,

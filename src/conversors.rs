@@ -1,11 +1,11 @@
-use amethyst_phythyst::objects::{
+use amethyst_physics::objects::{
     PhysicsAreaTag, PhysicsJointTag, PhysicsRigidBodyTag, PhysicsShapeTag,
 };
 
 use crate::storage::StoreKey;
 
 pub mod body_mode_conversor {
-    use amethyst_phythyst::servers::BodyMode;
+    use amethyst_physics::servers::BodyMode;
 
     use nphysics3d::object::BodyStatus as NpBodyStatus;
 

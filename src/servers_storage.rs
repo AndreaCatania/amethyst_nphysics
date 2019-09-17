@@ -1,6 +1,6 @@
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-use amethyst_phythyst::{objects::*, PtReal};
+use amethyst_physics::{objects::*, PtReal};
 
 use crate::{
     body_storage::BodyStorage,

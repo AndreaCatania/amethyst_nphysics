@@ -1,6 +1,6 @@
 use amethyst_core::ecs::Entity;
 use amethyst_core::math::{one, zero, Isometry3, Point, Vector3};
-use amethyst_phythyst::{objects::*, servers::*, PtReal};
+use amethyst_physics::{objects::*, servers::*, PtReal};
 use log::error;
 use nphysics3d::{
     math::{Force, ForceType},

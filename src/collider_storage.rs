@@ -1,4 +1,4 @@
-use amethyst_phythyst::PtReal;
+use amethyst_physics::PtReal;
 use ncollide3d::pipeline::object::CollisionObjectSet as NpCollisionObjectSet;
 use nphysics3d::object::{
     BodyHandle as NpBodyHandle, Collider as NpCollider,
@@ -84,6 +84,7 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
         self.storage.unchecked_get_mut(handle)
     }
 
+    #[allow(clippy::type_complexity)]
     fn get_pair_mut(
         &mut self,
         handle1: Self::Handle,
