@@ -2,7 +2,7 @@ use amethyst_core::ecs::Entity;
 use amethyst_core::math::{zero, Isometry3};
 use amethyst_physics::{
     objects::*,
-    servers::{AreaPhysicsServerTrait, OverlapEvent},
+    servers::{AreaPhysicsServerTrait, OverlapEvent,},
     PtReal,
 };
 use log::error;
@@ -121,7 +121,7 @@ impl<N> AreaPhysicsServerTrait<N> for AreaNpServer<N>
 where
     N: PtReal,
 {
-    fn create_area(&self) -> PhysicsHandle<PhysicsAreaTag> {
+    fn create(&self) -> PhysicsHandle<PhysicsAreaTag> {
         let mut bodies_storage = self.storages.bodies_w();
 
         // Create Rigid body
@@ -228,7 +228,7 @@ where
         }
     }
 
-    fn set_body_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<N>) {
+    fn set_transform(&self, area_tag: PhysicsAreaTag, transf: &Isometry3<N>) {
         let body_key = area_tag_to_store_key(area_tag);
         let bodies = self.storages.bodies_r();
 
@@ -238,7 +238,7 @@ where
         }
     }
 
-    fn body_transform(&self, area_tag: PhysicsAreaTag) -> Isometry3<N> {
+    fn transform(&self, area_tag: PhysicsAreaTag) -> Isometry3<N> {
         let area_key = area_tag_to_store_key(area_tag);
         let bodies = self.storages.bodies_r();
 

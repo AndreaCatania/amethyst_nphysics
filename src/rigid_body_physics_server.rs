@@ -140,7 +140,7 @@ impl<N> RBodyPhysicsServerTrait<N> for RBodyNpServer<N>
 where
     N: PtReal,
 {
-    fn create_body(&self, body_desc: &RigidBodyDesc<N>) -> PhysicsHandle<PhysicsRigidBodyTag> {
+    fn create(&self, body_desc: &RigidBodyDesc<N>) -> PhysicsHandle<PhysicsRigidBodyTag> {
         let mut bodies_storage = self.storages.bodies_w();
 
         // Create Rigid body
@@ -247,7 +247,7 @@ where
         }
     }
 
-    fn set_body_transform(&self, body_tag: PhysicsRigidBodyTag, transf: &Isometry3<N>) {
+    fn set_transform(&self, body_tag: PhysicsRigidBodyTag, transf: &Isometry3<N>) {
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 
@@ -257,7 +257,7 @@ where
         }
     }
 
-    fn body_transform(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<N> {
+    fn transform(&self, body_tag: PhysicsRigidBodyTag) -> Isometry3<N> {
         let body_key = rigid_tag_to_store_key(body_tag);
         let bodies = self.storages.bodies_r();
 

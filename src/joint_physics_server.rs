@@ -1,7 +1,7 @@
-use amethyst_core::math::Isometry3;
+use amethyst_core::math::{Isometry3, Translation3, convert};
 use amethyst_physics::{
     objects::*,
-    servers::{JointDesc, JointPhysicsServerTrait},
+    servers::{JointDesc, JointPhysicsServerTrait, JointPosition,},
     PtReal,
 };
 use log::error;
@@ -79,8 +79,19 @@ impl<N: PtReal> JointNpServer<N> {
                     let body_0_trsf = body_0.body_transform();
                     let body_1_trsf = body_1.body_transform();
 
-                    let anchor_0: Isometry3<N> = body_0_trsf.inverse() * joint.initial_isometry;
-                    let anchor_1: Isometry3<N> = body_1_trsf.inverse() * joint.initial_isometry;
+                    let joint_initial_isometry = match joint.initial_position {
+                        JointPosition::Exact(pos) => {
+                            pos
+                        },
+                        JointPosition::Middle => {
+                            let v = body_0_trsf.translation.vector.lerp(&body_1_trsf.translation.vector, convert(0.5));
+                            let r = body_0_trsf.rotation.slerp(&body_1_trsf.rotation, convert(0.5));
+                            Isometry3::from_parts(Translation3::from(v), r)
+                        }
+                    };
+
+                    let anchor_0: Isometry3<N> = body_0_trsf.inverse() * joint_initial_isometry;
+                    let anchor_1: Isometry3<N> = body_1_trsf.inverse() * joint_initial_isometry;
 
                     match joint.joint_desc {
                         JointDesc::Fixed => {
@@ -108,13 +119,13 @@ impl<N: PtReal> JointNpServer<N> {
 }
 
 impl<N: PtReal> JointPhysicsServerTrait<N> for JointNpServer<N> {
-    fn create_joint(
+    fn create(
         &self,
         desc: &JointDesc,
-        initial_position: &Isometry3<N>,
+        initial_position: JointPosition<N>,
     ) -> PhysicsHandle<PhysicsJointTag> {
         let mut joints = self.storages.joints_w();
-        let key = joints.insert(Joint::new(*desc, *initial_position));
+        let key = joints.insert(Joint::new(*desc, initial_position));
         joints.get_joint(key).unwrap().self_key = Some(key);
         PhysicsHandle::new(store_key_to_joint_tag(key), self.storages.gc.clone())
     }
