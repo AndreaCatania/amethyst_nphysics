@@ -5,18 +5,16 @@ authors = ["Andrea Catania <info@andreacatania.com>"]
 edition = "2018"
 repository = "https://github.com/AndreaCatania/amethyst_nphysics"
 description = "The NPhysics backend for the `amethyst_physics` crate."
-keywords = ["physics", "nphysics", "game", "dynamics", "rigid", "real-time", "joints", "soft", "amethyst"]
-categories = ["physics", "physics::engine"]
+keywords = ["physics", "nphysics", "dynamics", "3D", "amethyst"]
+categories = ["physics", "game-engines", "games"]
 readme = "README.md"
 license = "MIT"
 
 [dependencies]
-#amethyst_core = "0.7"
-#amethyst_physics = {path = "../amethyst_physics", version = "0.1.0"}
-amethyst_core = {git = "https://github.com/AndreaCatania/amethyst", branch = "batch"}
-amethyst_physics = {git = "https://github.com/AndreaCatania/amethyst_physics"}
+amethyst_core = "0.8"
+amethyst_physics = "0.0.1"
 log = "0.4.6"
 ncollide3d = "0.20.1"
 nphysics3d = "0.12.2"
-generational-arena = {git = "https://github.com/AndreaCatania/generational-arena", branch = "opaq"} # TODO fix this
+generational-arena = "0.2.3"
 alga = { version = "0.9.0", default-features = false }

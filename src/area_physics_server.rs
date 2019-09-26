@@ -2,7 +2,7 @@ use amethyst_core::ecs::Entity;
 use amethyst_core::math::{zero, Isometry3};
 use amethyst_physics::{
     objects::*,
-    servers::{AreaPhysicsServerTrait, OverlapEvent,},
+    servers::{AreaPhysicsServerTrait, OverlapEvent},
     PtReal,
 };
 use log::error;

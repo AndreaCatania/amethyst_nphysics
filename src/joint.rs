@@ -1,4 +1,7 @@
-use amethyst_physics::{servers::{JointDesc, JointPosition}, PtReal};
+use amethyst_physics::{
+    servers::{JointDesc, JointPosition},
+    PtReal,
+};
 use nphysics3d::{joint::JointConstraint as NpJointConstraint, object::BodySet as NpBodySet};
 
 use crate::storage::StoreKey;

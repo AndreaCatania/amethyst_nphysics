@@ -1,7 +1,7 @@
-use amethyst_core::math::{Isometry3, Translation3, convert};
+use amethyst_core::math::{convert, Isometry3, Translation3};
 use amethyst_physics::{
     objects::*,
-    servers::{JointDesc, JointPhysicsServerTrait, JointPosition,},
+    servers::{JointDesc, JointPhysicsServerTrait, JointPosition},
     PtReal,
 };
 use log::error;
@@ -80,12 +80,15 @@ impl<N: PtReal> JointNpServer<N> {
                     let body_1_trsf = body_1.body_transform();
 
                     let joint_initial_isometry = match joint.initial_position {
-                        JointPosition::Exact(pos) => {
-                            pos
-                        },
+                        JointPosition::Exact(pos) => pos,
                         JointPosition::Middle => {
-                            let v = body_0_trsf.translation.vector.lerp(&body_1_trsf.translation.vector, convert(0.5));
-                            let r = body_0_trsf.rotation.slerp(&body_1_trsf.rotation, convert(0.5));
+                            let v = body_0_trsf
+                                .translation
+                                .vector
+                                .lerp(&body_1_trsf.translation.vector, convert(0.5));
+                            let r = body_0_trsf
+                                .rotation
+                                .slerp(&body_1_trsf.rotation, convert(0.5));
                             Isometry3::from_parts(Translation3::from(v), r)
                         }
                     };

@@ -32,7 +32,7 @@ macro_rules! opaque_conversors {
     ($t:ident, $to:ident, $from:ident, $test_mod:ident) => {
         pub fn $to(tag: $t) -> StoreKey {
             match tag {
-                $t::UsizeU64(a, b) => StoreKey::new(a, b),
+                $t::UsizeU64(a, b) => StoreKey::from_raw_parts(a, b),
                 _ => {
                     // If happens, something is strange
                     panic!();
@@ -41,7 +41,8 @@ macro_rules! opaque_conversors {
         }
 
         pub fn $from(key: StoreKey) -> $t {
-            unsafe { key.map(|index, generation| $t::new_usizeu64(index, generation)) }
+            let (index, generation) = key.into_raw_parts();
+            unsafe { $t::new_usizeu64(index, generation) }
         }
 
         #[cfg(test)]
