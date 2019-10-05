@@ -4,7 +4,6 @@ use amethyst_physics::{
     PtReal,
 };
 use log::error;
-use nphysics3d::object::ColliderDesc as NpColliderDesc;
 
 use crate::{
     area_physics_server::AreaNpServer, body::BodyData, conversors::*,
@@ -87,16 +86,10 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
             for body_key in b_keys {
                 let body = bodies.get_body(*body_key);
                 if let Some(mut body) = body {
-                    let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
-
                     match &body.body_data {
                         BodyData::Rigid => {
                             RBodyNpServer::drop_collider(&mut *body, &mut colliders);
-                            RBodyNpServer::extract_collider_desc(
-                                body.rigid_body().unwrap(),
-                                &*shape,
-                                &mut collider_desc,
-                            );
+                            let collider_desc = RBodyNpServer::create_collider_desc(&body, &*shape);
                             RBodyNpServer::install_collider(
                                 &mut *body,
                                 &collider_desc,
@@ -105,11 +98,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                         }
                         BodyData::Area(_e) => {
                             AreaNpServer::drop_collider(&mut *body, &mut colliders);
-                            AreaNpServer::extract_collider_desc(
-                                body.rigid_body().unwrap(),
-                                &*shape,
-                                &mut collider_desc,
-                            );
+                            let collider_desc = AreaNpServer::create_collider_desc(&body, &*shape);
                             AreaNpServer::install_collider(
                                 &mut *body,
                                 &collider_desc,

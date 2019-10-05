@@ -6,7 +6,7 @@ use nphysics3d::{
     math::{Force, ForceType},
     object::{
         BodyPartHandle as NpBodyPartHandle, Collider as NpCollider, ColliderDesc as NpColliderDesc,
-        RigidBody as NpRigidBody, RigidBodyDesc as NpRigidBodyDesc,
+        RigidBodyDesc as NpRigidBodyDesc,
     },
 };
 
@@ -50,18 +50,10 @@ impl<N: PtReal> RBodyNpServer<N> {
     pub fn install_shape(
         body: &mut Body<N>,
         shape: &mut RigidShape<N>,
-        mut collider_desc: NpColliderDesc<N>,
+        collider_desc: &NpColliderDesc<N>,
         colliders: &mut CollidersStorageWrite<'_, N>,
     ) {
-        if shape.is_concave() {
-            collider_desc.set_density(zero());
-        } else {
-            collider_desc.set_density(one());
-        }
-
-        collider_desc.set_material(body.material_handle.clone());
-
-        Self::install_collider(body, &collider_desc, colliders);
+        Self::install_collider(body, collider_desc, colliders);
 
         // Collider registration
         shape.register_body(body.self_key.unwrap());
@@ -116,22 +108,34 @@ impl<N: PtReal> RBodyNpServer<N> {
         ))));
     }
 
-    /// Extract collider description from a rigid body
-    pub fn extract_collider_desc(
-        _np_rigid_body: &NpRigidBody<N>, // This is not yet used, but in future it will be.
-        shape: &RigidShape<N>,
-        np_collider_desc: &mut NpColliderDesc<N>,
-    ) {
+    pub fn create_collider_desc(body: &Body<N>, shape: &RigidShape<N>) -> NpColliderDesc<N> {
+        let mut collider_desc = NpColliderDesc::new(shape.shape_handle().clone())
+            .collision_groups(body.np_collision_groups)
+            .material(body.material_handle.clone());
         if shape.is_concave() {
-            np_collider_desc.set_density(zero());
+            collider_desc.set_density(zero());
         } else {
-            np_collider_desc.set_density(one());
+            collider_desc.set_density(one());
         }
+        collider_desc
     }
 
     pub fn active_body(body_key: StoreKey, bodies: &BodiesStorageRead<'_, N>) {
         if let Some(mut body) = bodies.get_body(body_key) {
             body.activate();
+        }
+    }
+}
+
+// This is a collection of utility function to perform common operations.
+impl<N: crate::PtReal> RBodyNpServer<N> {
+    /// Update the collider collision group.
+    pub fn update_collider_collision_groups(&self, body: &Body<N>) {
+        // Update the collider collision groups.
+        if let Some(key) = body.collider_key {
+            let colliders = self.storages.colliders_r();
+            let mut collider = colliders.get_collider(key).unwrap();
+            collider.set_collision_groups(body.np_collision_groups);
         }
     }
 }
@@ -149,13 +153,33 @@ where
             .set_mass(body_desc.mass)
             .build();
 
+        let cg =
+            collision_group_conversor::to_nphysics(&body_desc.belong_to, &body_desc.collide_with);
+
         let b_key = bodies_storage.insert_body(Body::new_rigid_body(
             Box::new(np_rigid_body),
             body_desc.friction,
             body_desc.bounciness,
+            cg,
         ));
+
+        // Initialize the body
         let mut body = bodies_storage.get_body(b_key).unwrap();
         body.self_key = Some(b_key);
+        body.rigid_body_mut()
+            .unwrap()
+            .set_translations_kinematic(Vector3::new(
+                body_desc.lock_translation_x,
+                body_desc.lock_translation_y,
+                body_desc.lock_translation_z,
+            ));
+        body.rigid_body_mut()
+            .unwrap()
+            .set_rotations_kinematic(Vector3::new(
+                body_desc.lock_rotation_x,
+                body_desc.lock_rotation_y,
+                body_desc.lock_rotation_z,
+            ));
 
         PhysicsHandle::new(store_key_to_rigid_tag(b_key), self.storages.gc.clone())
     }
@@ -218,12 +242,12 @@ where
                 let shape = shapes.get(shape_key);
                 if let Some(mut shape) = shape {
                     // Create and attach the collider
-                    let collider_desc = NpColliderDesc::new(shape.shape_handle().clone());
+                    let collider_desc = RBodyNpServer::create_collider_desc(&body, &shape);
 
                     RBodyNpServer::install_shape(
                         &mut *body,
                         &mut *shape,
-                        collider_desc,
+                        &collider_desc,
                         &mut colliders,
                     );
                 } else {
@@ -307,6 +331,107 @@ where
 
     fn bounciness(&self, _body_tag: PhysicsRigidBodyTag) -> N {
         unimplemented!();
+    }
+
+    fn set_belong_to(&self, body_tag: PhysicsRigidBodyTag, groups: Vec<CollisionGroup>) {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let body = bodies.get_body(body_key);
+        if let Some(mut body) = body {
+            let (_, collide_with) =
+                collision_group_conversor::from_nphysics(&body.np_collision_groups);
+            body.np_collision_groups =
+                collision_group_conversor::to_nphysics(&groups, &collide_with);
+            self.update_collider_collision_groups(&body);
+        }
+    }
+
+    fn belong_to(&self, body_tag: PhysicsRigidBodyTag) -> Vec<CollisionGroup> {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let body = bodies.get_body(body_key);
+        if let Some(body) = body {
+            collision_group_conversor::from_nphysics(&body.np_collision_groups).0
+        } else {
+            Vec::new()
+        }
+    }
+
+    fn set_collide_with(&self, body_tag: PhysicsRigidBodyTag, groups: Vec<CollisionGroup>) {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let body = bodies.get_body(body_key);
+        if let Some(mut body) = body {
+            let (belong_to, _) =
+                collision_group_conversor::from_nphysics(&body.np_collision_groups);
+            body.np_collision_groups = collision_group_conversor::to_nphysics(&belong_to, &groups);
+            self.update_collider_collision_groups(&body);
+        }
+    }
+
+    fn collide_with(&self, body_tag: PhysicsRigidBodyTag) -> Vec<CollisionGroup> {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let body = bodies.get_body(body_key);
+        if let Some(body) = body {
+            collision_group_conversor::from_nphysics(&body.np_collision_groups).1
+        } else {
+            Vec::new()
+        }
+    }
+
+    fn set_lock_translation(&self, body_tag: PhysicsRigidBodyTag, axis: Vector3<bool>) {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let body = bodies.get_body(body_key);
+        if let Some(mut body) = body {
+            if let Some(rb) = body.rigid_body_mut() {
+                rb.set_translations_kinematic(axis);
+            }
+        }
+    }
+
+    fn lock_translation(&self, body_tag: PhysicsRigidBodyTag) -> Vector3<bool> {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let body = bodies.get_body(body_key);
+        if let Some(body) = body {
+            if let Some(rb) = body.rigid_body() {
+                return rb.kinematic_translations();
+            }
+        }
+        Vector3::new(false, false, false)
+    }
+
+    fn set_lock_rotation(&self, body_tag: PhysicsRigidBodyTag, axis: Vector3<bool>) {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let body = bodies.get_body(body_key);
+        if let Some(mut body) = body {
+            if let Some(rb) = body.rigid_body_mut() {
+                rb.set_rotations_kinematic(axis);
+            }
+        }
+    }
+
+    fn lock_rotation(&self, body_tag: PhysicsRigidBodyTag) -> Vector3<bool> {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let body = bodies.get_body(body_key);
+        if let Some(body) = body {
+            if let Some(rb) = body.rigid_body() {
+                return rb.kinematic_rotations();
+            }
+        }
+        Vector3::new(false, false, false)
     }
 
     fn clear_forces(&self, body_tag: PhysicsRigidBodyTag) {

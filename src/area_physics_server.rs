@@ -2,13 +2,13 @@ use amethyst_core::ecs::Entity;
 use amethyst_core::math::{zero, Isometry3};
 use amethyst_physics::{
     objects::*,
-    servers::{AreaPhysicsServerTrait, OverlapEvent},
+    servers::{AreaDesc, AreaPhysicsServerTrait, OverlapEvent},
     PtReal,
 };
 use log::error;
 use nphysics3d::object::{
     BodyPartHandle as NpBodyPartHandle, BodyStatus as NpBodyStatus, Collider as NpCollider,
-    ColliderDesc as NpColliderDesc, RigidBody as NpRigidBody, RigidBodyDesc as NpRigidBodyDesc,
+    ColliderDesc as NpColliderDesc, RigidBodyDesc as NpRigidBodyDesc,
 };
 
 use crate::{
@@ -107,13 +107,24 @@ impl<N: PtReal> AreaNpServer<N> {
         ))));
     }
 
-    pub fn extract_collider_desc(
-        _np_rigid_body: &NpRigidBody<N>, // Even if not used still here because in future this will be used.
-        _shape: &RigidShape<N>, // Even if not used still here because in future this will be used.
-        np_collider_desc: &mut NpColliderDesc<N>,
-    ) {
-        np_collider_desc.set_density(zero());
-        np_collider_desc.set_is_sensor(true);
+    pub fn create_collider_desc(body: &Body<N>, shape: &RigidShape<N>) -> NpColliderDesc<N> {
+        NpColliderDesc::new(shape.shape_handle().clone())
+            .collision_groups(body.np_collision_groups)
+            .density(zero())
+            .sensor(true)
+    }
+}
+
+// This is a collection of utility function to perform common operations.
+impl<N: crate::PtReal> AreaNpServer<N> {
+    /// Update the collider collision group.
+    pub fn update_collider_collision_groups(&self, area: &Body<N>) {
+        // Update the collider collision groups.
+        if let Some(key) = area.collider_key {
+            let colliders = self.storages.colliders_r();
+            let mut collider = colliders.get_collider(key).unwrap();
+            collider.set_collision_groups(area.np_collision_groups);
+        }
     }
 }
 
@@ -121,7 +132,7 @@ impl<N> AreaPhysicsServerTrait<N> for AreaNpServer<N>
 where
     N: PtReal,
 {
-    fn create(&self) -> PhysicsHandle<PhysicsAreaTag> {
+    fn create(&self, area_desc: &AreaDesc) -> PhysicsHandle<PhysicsAreaTag> {
         let mut bodies_storage = self.storages.bodies_w();
 
         // Create Rigid body
@@ -130,8 +141,11 @@ where
             .set_mass(N::from(0.0f32))
             .build();
 
-        let a_key =
-            bodies_storage.insert_body(Body::new_area(Box::new(np_rigid_body), zero(), zero()));
+        let cg =
+            collision_group_conversor::to_nphysics(&area_desc.belong_to, &area_desc.collide_with);
+
+        let a_key = bodies_storage.insert_body(Body::new_area(Box::new(np_rigid_body), cg));
+
         let mut area = bodies_storage.get_body(a_key).unwrap();
         area.self_key = Some(a_key);
 
@@ -195,8 +209,7 @@ where
 
                     if let Some(mut shape) = shapes.get(shape_key) {
                         // Create and attach the collider
-                        let collider_desc =
-                            NpColliderDesc::new(shape.shape_handle().clone()).sensor(true);
+                        let collider_desc = AreaNpServer::create_collider_desc(&area, &shape);
 
                         AreaNpServer::install_shape(
                             &mut *area,
@@ -247,6 +260,57 @@ where
             *area.body_transform()
         } else {
             Isometry3::identity()
+        }
+    }
+
+    fn set_belong_to(&self, area_tag: PhysicsAreaTag, groups: Vec<CollisionGroup>) {
+        let area_key = area_tag_to_store_key(area_tag);
+        let bodies = self.storages.bodies_r();
+
+        let area = bodies.get_body(area_key);
+        if let Some(mut area) = area {
+            let (_, collide_with) =
+                collision_group_conversor::from_nphysics(&area.np_collision_groups);
+            area.np_collision_groups =
+                collision_group_conversor::to_nphysics(&groups, &collide_with);
+            self.update_collider_collision_groups(&area);
+        }
+    }
+
+    fn belong_to(&self, area_tag: PhysicsAreaTag) -> Vec<CollisionGroup> {
+        let area_key = area_tag_to_store_key(area_tag);
+        let bodies = self.storages.bodies_r();
+
+        let area = bodies.get_body(area_key);
+        if let Some(area) = area {
+            collision_group_conversor::from_nphysics(&area.np_collision_groups).0
+        } else {
+            Vec::new()
+        }
+    }
+
+    fn set_collide_with(&self, area_tag: PhysicsAreaTag, groups: Vec<CollisionGroup>) {
+        let area_key = area_tag_to_store_key(area_tag);
+        let bodies = self.storages.bodies_r();
+
+        let area = bodies.get_body(area_key);
+        if let Some(mut area) = area {
+            let (belong_to, _) =
+                collision_group_conversor::from_nphysics(&area.np_collision_groups);
+            area.np_collision_groups = collision_group_conversor::to_nphysics(&belong_to, &groups);
+            self.update_collider_collision_groups(&area);
+        }
+    }
+
+    fn collide_with(&self, area_tag: PhysicsAreaTag) -> Vec<CollisionGroup> {
+        let area_key = area_tag_to_store_key(area_tag);
+        let bodies = self.storages.bodies_r();
+
+        let area = bodies.get_body(area_key);
+        if let Some(area) = area {
+            collision_group_conversor::from_nphysics(&area.np_collision_groups).1
+        } else {
+            Vec::new()
         }
     }
 
