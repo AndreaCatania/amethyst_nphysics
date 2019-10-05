@@ -1,5 +1,9 @@
-use amethyst_core::{ecs::Entity, math::Isometry3};
+use amethyst_core::{
+    ecs::Entity,
+    math::{zero, Isometry3},
+};
 use amethyst_physics::{servers::OverlapEvent, PtReal};
+use ncollide3d::pipeline::object::CollisionGroups as NpCollisionGroups;
 use nphysics3d::{
     material::{BasicMaterial, MaterialHandle},
     object::{Body as NpBody, RigidBody as NpRigidBody},
@@ -21,6 +25,7 @@ pub struct Body<N: PtReal> {
     pub shape_key: Option<StoreKey>,
     pub entity: Option<Entity>,
     pub material_handle: MaterialHandle<N>, // TODO share this material across many bodies
+    pub np_collision_groups: NpCollisionGroups,
 }
 
 impl<N: PtReal> Body<N> {
@@ -29,6 +34,7 @@ impl<N: PtReal> Body<N> {
         np_rigid_body: Box<NpRigidBody<N>>,
         friction: N,
         bounciness: N,
+        np_collision_groups: NpCollisionGroups,
     ) -> Self {
         Body {
             self_key: None,
@@ -38,11 +44,15 @@ impl<N: PtReal> Body<N> {
             shape_key: None,
             entity: None,
             material_handle: MaterialHandle::new(BasicMaterial::new(bounciness, friction)),
+            np_collision_groups,
         }
     }
 
     /// Creates an Area `Body`
-    pub(crate) fn new_area(np_rigid_body: Box<NpRigidBody<N>>, friction: N, bounciness: N) -> Self {
+    pub(crate) fn new_area(
+        np_rigid_body: Box<NpRigidBody<N>>,
+        np_collision_groups: NpCollisionGroups,
+    ) -> Self {
         Body {
             self_key: None,
             np_body: np_rigid_body,
@@ -50,7 +60,8 @@ impl<N: PtReal> Body<N> {
             collider_key: None,
             shape_key: None,
             entity: None,
-            material_handle: MaterialHandle::new(BasicMaterial::new(bounciness, friction)),
+            material_handle: MaterialHandle::new(BasicMaterial::new(zero(), zero())),
+            np_collision_groups,
         }
     }
 
