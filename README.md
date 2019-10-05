@@ -1,5 +1,5 @@
 # NPhysics Amethyst backend
-![Build Status] ![License] ![Line of code][loc]
+[![Build Status]](https://travis-ci.com/AndreaCatania/amethyst_nphysics) [![License]](https://github.com/AndreaCatania/amethyst_nphysics/blob/master/LICENSE) [![Line of code][loc]](https://github.com/AndreaCatania/amethyst_nphysics/pulse)
 
 [Build Status]: https://travis-ci.com/AndreaCatania/amethyst_nphysics.svg?branch=master
 [License]: https://img.shields.io/badge/License-MIT-green.svg
