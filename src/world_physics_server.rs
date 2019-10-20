@@ -226,7 +226,7 @@ impl<N: PtReal> WorldNpServer<N> {
                                     ContactEvent {
                                         other_body: store_key_to_rigid_tag(body_2_ud.store_key()),
                                         other_entity: body_2_ud.entity(),
-                                        contact_normal: contact.contact.normal,
+                                        contact_normal: -contact.contact.normal,
                                         contact_location: contact.contact.world1,
                                         contact_impulse: Vector3::zeros(), // TODO obtain this ?
                                     }
@@ -241,7 +241,7 @@ impl<N: PtReal> WorldNpServer<N> {
                                     ContactEvent {
                                         other_body: store_key_to_rigid_tag(body_1_ud.store_key()),
                                         other_entity: body_1_ud.entity(),
-                                        contact_normal: -contact.contact.normal,
+                                        contact_normal: contact.contact.normal,
                                         contact_location: contact.contact.world2,
                                         contact_impulse: Vector3::zeros(), // TODO obtain this ?
                                     }
