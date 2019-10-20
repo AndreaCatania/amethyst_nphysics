@@ -9,7 +9,6 @@ use crate::{
     joint_storage::JointStorage,
     shape::RigidShape,
     storage::{Storage, StoreKey},
-    utils::ContactData,
 };
 
 pub type ServersStorages<N> = Arc<ServersStorage<N>>;
@@ -26,6 +25,8 @@ pub type ForceGeneratorsStorageRead<'a, N> =
     RwLockReadGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
 pub type ShapesStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
 pub type ShapesStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
+pub type WatchContactsWrite<'a> = RwLockWriteGuard<'a, Vec<StoreKey>>;
+pub type WatchContactsRead<'a> = RwLockReadGuard<'a, Vec<StoreKey>>;
 
 /// This struct is responsible to hold all the storages
 ///
@@ -52,6 +53,7 @@ pub struct ServersStorage<N: PtReal> {
     force_generators: RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>,
     shapes: RwLock<Storage<Box<RigidShape<N>>>>,
     contacts: RwLock<Vec<ContactData<N>>>,
+    watch_contacts: RwLock<Vec<StoreKey>>,
 }
 
 impl<N: PtReal> ServersStorage<N> {
@@ -64,6 +66,7 @@ impl<N: PtReal> ServersStorage<N> {
             force_generators: RwLock::new(ForceGeneratorStorage::default()),
             shapes: RwLock::new(Storage::new(50, 50)),
             contacts: RwLock::new(Vec::new()),
+            watch_contacts: RwLock::new(Vec::new()),
         })
     }
 }
@@ -107,5 +110,13 @@ impl<N: PtReal> ServersStorage<N> {
 
     pub fn shapes_r(&self) -> ShapesStorageRead<'_, N> {
         self.shapes.read().unwrap()
+    }
+
+    pub fn watch_contacts_w(&self) -> WatchContactsWrite<'_> {
+        self.watch_contacts.write().unwrap()
+    }
+
+    pub fn watch_contacts_r(&self) -> WatchContactsRead<'_> {
+        self.watch_contacts.read().unwrap()
     }
 }

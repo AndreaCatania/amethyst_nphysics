@@ -2,7 +2,10 @@ use amethyst_core::{
     ecs::Entity,
     math::{zero, Isometry3},
 };
-use amethyst_physics::{servers::OverlapEvent, PtReal};
+use amethyst_physics::{
+    servers::{ContactEvent, OverlapEvent},
+    PtReal,
+};
 use ncollide3d::pipeline::object::CollisionGroups as NpCollisionGroups;
 use nphysics3d::{
     material::{BasicMaterial, MaterialHandle},
@@ -20,7 +23,7 @@ use crate::storage::StoreKey;
 pub struct Body<N: PtReal> {
     pub self_key: Option<StoreKey>,
     pub np_body: Box<dyn NpBody<N>>,
-    pub body_data: BodyData,
+    pub body_data: BodyData<N>,
     pub collider_key: Option<StoreKey>,
     pub shape_key: Option<StoreKey>,
     pub entity: Option<Entity>,
@@ -40,7 +43,10 @@ impl<N: PtReal> Body<N> {
         Body {
             self_key: None,
             np_body: np_rigid_body,
-            body_data: BodyData::Rigid { contacts_to_report },
+            body_data: BodyData::Rigid {
+                contacts_to_report,
+                contacts: Vec::new(),
+            },
             collider_key: None,
             shape_key: None,
             entity: None,
@@ -113,7 +119,10 @@ impl<N: PtReal> Body<N> {
 
 /// Here are stored extra body information, depending on the body type
 #[derive(Debug, PartialEq)]
-pub enum BodyData {
-    Rigid { contacts_to_report: usize },
+pub enum BodyData<N: PtReal> {
+    Rigid {
+        contacts_to_report: usize,
+        contacts: Vec<ContactEvent<N>>,
+    },
     Area(Vec<OverlapEvent>),
 }

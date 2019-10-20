@@ -13,7 +13,9 @@ use crate::{
     body::BodyData,
     body_storage::BodyStorage,
     conversors::*,
-    servers_storage::{BodiesStorageWrite, CollidersStorageWrite, ServersStorages},
+    servers_storage::{
+        BodiesStorageWrite, CollidersStorageWrite, ServersStorages, WatchContactsRead,
+    },
     storage::StoreKey,
     utils::*,
     AreaNpServer, JointNpServer, RBodyNpServer, ShapeNpServer,
@@ -104,6 +106,7 @@ impl<N: PtReal> WorldNpServer<N> {
     fn fetch_events(
         g_world: &mut GeometricalWorld<N, StoreKey, StoreKey>,
         _m_world: &mut MechanicalWorld<N, BodyStorage<N>, StoreKey>, // Not yet used but will be with contact event
+        watch_contacts: &WatchContactsRead<'_>,
         bodies: &mut BodiesStorageWrite<'_, N>,
         colliders: &mut CollidersStorageWrite<'_, N>,
     ) {
@@ -195,15 +198,67 @@ impl<N: PtReal> WorldNpServer<N> {
         }
 
         {
-            //for (c_handle1, col1, c_handle2, col2, c_algorithm, c_manifold) in g_world.contacts_with(&**colliders, true) {
-            //    // TODO Check if one of these two colliders want to report the contact
-            //    if let Some(contact) = c_manifold.deepest_contact() {
-            //        dbg!(contact);
-            //        let p = contact.contact.world1;
-            //        let n =contact.contact.normal;
-            //        let d =contact.contact.depth;
-            //    }
-            //}
+            // TODO parallelize this process please
+            for body_key in watch_contacts.iter() {
+                let mut body = bodies.get_body(*body_key).unwrap();
+                let collider_key = body.collider_key;
+
+                if let BodyData::Rigid {
+                    contacts_to_report,
+                    contacts,
+                } = &mut body.body_data
+                {
+                    contacts.clear();
+                    if let Some(collider_key) = collider_key {
+                        for (c_handle1, collider1, _c_handle2, collider2, _algorithm, c_manifold) in
+                            g_world
+                                .contacts_with(&**colliders, collider_key, true)
+                                .unwrap()
+                        {
+                            if let Some(contact) = c_manifold.deepest_contact() {
+                                let c = if c_handle1 == collider_key {
+                                    let body_2_ud: &UserData = collider2
+                                        .user_data()
+                                        .unwrap()
+                                        .downcast_ref::<UserData>()
+                                        .unwrap();
+
+                                    ContactEvent {
+                                        other_body: store_key_to_rigid_tag(body_2_ud.store_key()),
+                                        other_entity: body_2_ud.entity(),
+                                        contact_normal: contact.contact.normal,
+                                        contact_location: contact.contact.world1,
+                                        contact_impulse: Vector3::zeros(), // TODO obtain this ?
+                                    }
+                                } else {
+                                    // Invert
+                                    let body_1_ud: &UserData = collider1
+                                        .user_data()
+                                        .unwrap()
+                                        .downcast_ref::<UserData>()
+                                        .unwrap();
+
+                                    ContactEvent {
+                                        other_body: store_key_to_rigid_tag(body_1_ud.store_key()),
+                                        other_entity: body_1_ud.entity(),
+                                        contact_normal: -contact.contact.normal,
+                                        contact_location: contact.contact.world2,
+                                        contact_impulse: Vector3::zeros(), // TODO obtain this ?
+                                    }
+                                };
+
+                                contacts.push(c);
+                                if contacts.len() >= *contacts_to_report {
+                                    // Cap reached
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    panic!();
+                }
+            }
         }
     }
 }
@@ -219,6 +274,7 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
         let mut colliders = self.storages.colliders_w();
         let mut joints = self.storages.joints_w();
         let mut force_generator = self.storages.force_generator_w();
+        let watch_contacts = self.storages.watch_contacts_r();
 
         mw.step(
             &mut *gw,
@@ -228,7 +284,13 @@ impl<N: PtReal> WorldPhysicsServerTrait<N> for WorldNpServer<N> {
             &mut *force_generator,
         );
 
-        Self::fetch_events(&mut *gw, &mut *mw, &mut bodies, &mut colliders);
+        Self::fetch_events(
+            &mut *gw,
+            &mut *mw,
+            &watch_contacts,
+            &mut bodies,
+            &mut colliders,
+        );
     }
 
     fn set_time_step(&self, delta_time: N) {

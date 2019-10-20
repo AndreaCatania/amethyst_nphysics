@@ -1,6 +1,5 @@
 use crate::storage::StoreKey;
 use amethyst_core::ecs::Entity;
-use amethyst_physics::{PtReal, servers::ContactEvent};
 
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum ObjectType {
@@ -39,14 +38,4 @@ impl UserData {
     pub fn entity(&self) -> Option<Entity> {
         self.entity
     }
-}
-
-/// Contact data is used to store the information of the contacts
-/// per each collider.
-///
-/// These information are not stored inside the body to optimize the collection
-/// process.
-pub struct ContactData<N: PtReal> {
-    pub collider_handle: StoreKey,
-    pub contacts: Vec<ContactEvent<N>>,
 }

@@ -30,7 +30,7 @@ impl<N: PtReal> RBodyNpServer<N> {
 }
 
 // This is a collection of function that can be used by other servers to perform some common
-// operations on the areas.
+// operations on the body.
 impl<N: PtReal> RBodyNpServer<N> {
     pub fn drop_body(
         body_tag: PhysicsRigidBodyTag,
@@ -125,6 +125,30 @@ impl<N: PtReal> RBodyNpServer<N> {
             body.activate();
         }
     }
+
+    #[allow(clippy::collapsible_if)]
+    pub fn update_contacts_watcher(
+        body: &mut Body<N>,
+        contacts_storage: &mut WatchContactsWrite<'_>,
+    ) {
+        if let BodyData::Rigid {
+            contacts_to_report, ..
+        } = body.body_data
+        {
+            let i = contacts_storage.binary_search(&body.self_key.unwrap());
+            if let Result::Ok(i) = i {
+                if contacts_to_report == 0 {
+                    // Removes the entry on the contacts storage.
+                    contacts_storage.remove(i);
+                }
+            } else {
+                if contacts_to_report != 0 {
+                    // Creates new entry on the contacts storage.
+                    contacts_storage.push(body.self_key.unwrap());
+                }
+            }
+        }
+    }
 }
 
 // This is a collection of utility function to perform common operations.
@@ -181,6 +205,7 @@ where
                 body_desc.lock_rotation_y,
                 body_desc.lock_rotation_z,
             ));
+        Self::update_contacts_watcher(&mut *body, &mut self.storages.watch_contacts_w());
 
         PhysicsHandle::new(store_key_to_rigid_tag(b_key), self.storages.gc.clone())
     }
@@ -613,13 +638,14 @@ where
         let bodies = self.storages.bodies_r();
 
         let b = bodies.get_body(body_key);
-        if let Some(body) = b {
+        if let Some(mut body) = b {
             if let BodyData::Rigid {
-                mut contacts_to_report,
-            } = body.body_data
+                contacts_to_report, ..
+            } = &mut body.body_data
             {
-                contacts_to_report = count;
+                *contacts_to_report = count;
             }
+            Self::update_contacts_watcher(&mut *body, &mut self.storages.watch_contacts_w());
         }
     }
 
@@ -629,7 +655,10 @@ where
 
         let b = bodies.get_body(body_key);
         if let Some(body) = b {
-            if let BodyData::Rigid { contacts_to_report } = body.body_data {
+            if let BodyData::Rigid {
+                contacts_to_report, ..
+            } = body.body_data
+            {
                 contacts_to_report
             } else {
                 0
@@ -639,18 +668,21 @@ where
         }
     }
 
-    fn contact_events(&self, body_tag: PhysicsRigidBodyTag, contacts: &mut Vec<ContactEvent<N>>) {
-        let c_key: Option<StoreKey> = {
-            let body_key = rigid_tag_to_store_key(body_tag);
-            let bodies = self.storages.bodies_r();
+    fn contact_events(
+        &self,
+        body_tag: PhysicsRigidBodyTag,
+        out_contacts: &mut Vec<ContactEvent<N>>,
+    ) {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
 
-            bodies.get_body(body_key).map(|b| b.collider_key).unwrap_or(None)
-        };
-
-        if let Some(c_key) = c_key {
-            //self.
-            unimplemented!();
+        if let Some(body) = bodies.get_body(body_key) {
+            if let BodyData::Rigid { contacts, .. } = &body.body_data {
+                out_contacts.resize_with(contacts.len(), || ContactEvent::default());
+                out_contacts.copy_from_slice(contacts.as_slice());
+                return;
+            }
         }
-
+        out_contacts.clear();
     }
 }
