@@ -9,6 +9,7 @@ use crate::{
     joint_storage::JointStorage,
     shape::RigidShape,
     storage::{Storage, StoreKey},
+    utils::ContactData,
 };
 
 pub type ServersStorages<N> = Arc<ServersStorage<N>>;
@@ -50,6 +51,7 @@ pub struct ServersStorage<N: PtReal> {
     joints: RwLock<JointStorage<N, BodyStorage<N>>>,
     force_generators: RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>,
     shapes: RwLock<Storage<Box<RigidShape<N>>>>,
+    contacts: RwLock<Vec<ContactData<N>>>,
 }
 
 impl<N: PtReal> ServersStorage<N> {
@@ -61,6 +63,7 @@ impl<N: PtReal> ServersStorage<N> {
             joints: RwLock::new(JointStorage::default()),
             force_generators: RwLock::new(ForceGeneratorStorage::default()),
             shapes: RwLock::new(Storage::new(50, 50)),
+            contacts: RwLock::new(Vec::new()),
         })
     }
 }

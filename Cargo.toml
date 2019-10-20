@@ -12,7 +12,8 @@ license = "MIT"
 
 [dependencies]
 amethyst_core = "0.8.0"
-amethyst_physics = "0.1.0"
+#amethyst_physics = "0.1.0"
+amethyst_physics = {path = "/home/andrea/Workspace/git/amethyst_physics"}
 log = "0.4.6"
 ncollide3d = "0.20.1"
 nphysics3d = "0.12.2"

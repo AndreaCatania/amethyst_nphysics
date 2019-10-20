@@ -35,11 +35,12 @@ impl<N: PtReal> Body<N> {
         friction: N,
         bounciness: N,
         np_collision_groups: NpCollisionGroups,
+        contacts_to_report: usize,
     ) -> Self {
         Body {
             self_key: None,
             np_body: np_rigid_body,
-            body_data: BodyData::Rigid,
+            body_data: BodyData::Rigid { contacts_to_report },
             collider_key: None,
             shape_key: None,
             entity: None,
@@ -86,7 +87,7 @@ impl<N: PtReal> Body<N> {
     /// Set body transform.
     pub fn set_body_transform(&mut self, transf: &Isometry3<N>) {
         match self.body_data {
-            BodyData::Rigid | BodyData::Area(_) => {
+            BodyData::Rigid { .. } | BodyData::Area(..) => {
                 if let Some(body) = self.rigid_body_mut() {
                     body.set_position(*transf);
                 } else {
@@ -99,7 +100,7 @@ impl<N: PtReal> Body<N> {
     /// Get body transform.
     pub fn body_transform(&self) -> &Isometry3<N> {
         match self.body_data {
-            BodyData::Rigid | BodyData::Area(_) => {
+            BodyData::Rigid { .. } | BodyData::Area(..) => {
                 if let Some(body) = self.rigid_body() {
                     body.position()
                 } else {
@@ -113,6 +114,6 @@ impl<N: PtReal> Body<N> {
 /// Here are stored extra body information, depending on the body type
 #[derive(Debug, PartialEq)]
 pub enum BodyData {
-    Rigid,
+    Rigid { contacts_to_report: usize },
     Area(Vec<OverlapEvent>),
 }

@@ -3,7 +3,7 @@ use std::sync::RwLock;
 use amethyst_core::math::Vector3;
 use amethyst_physics::{
     objects::*,
-    servers::{OverlapEvent, WorldPhysicsServerTrait},
+    servers::{ContactEvent, OverlapEvent, WorldPhysicsServerTrait},
     PtReal,
 };
 use ncollide3d::query::Proximity;
@@ -192,6 +192,18 @@ impl<N: PtReal> WorldNpServer<N> {
                     }
                 }
             }
+        }
+
+        {
+            //for (c_handle1, col1, c_handle2, col2, c_algorithm, c_manifold) in g_world.contacts_with(&**colliders, true) {
+            //    // TODO Check if one of these two colliders want to report the contact
+            //    if let Some(contact) = c_manifold.deepest_contact() {
+            //        dbg!(contact);
+            //        let p = contact.contact.world1;
+            //        let n =contact.contact.normal;
+            //        let d =contact.contact.depth;
+            //    }
+            //}
         }
     }
 }

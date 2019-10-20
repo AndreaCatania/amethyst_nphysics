@@ -161,6 +161,7 @@ where
             body_desc.friction,
             body_desc.bounciness,
             cg,
+            body_desc.contacts_to_report,
         ));
 
         // Initialize the body
@@ -190,7 +191,7 @@ where
 
         let body = bodies.get_body(body_key);
         if let Some(mut body) = body {
-            fail_cond!(!matches!(body.body_data, BodyData::Rigid));
+            fail_cond!(!matches!(body.body_data, BodyData::Rigid{..}));
             body.entity = entity;
 
             if let Some(collider_key) = body.collider_key {
@@ -605,5 +606,51 @@ where
             }
         }
         Vector3::zeros()
+    }
+
+    fn set_contacts_to_report(&self, body_tag: PhysicsRigidBodyTag, count: usize) {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let b = bodies.get_body(body_key);
+        if let Some(body) = b {
+            if let BodyData::Rigid {
+                mut contacts_to_report,
+            } = body.body_data
+            {
+                contacts_to_report = count;
+            }
+        }
+    }
+
+    fn contacts_to_report(&self, body_tag: PhysicsRigidBodyTag) -> usize {
+        let body_key = rigid_tag_to_store_key(body_tag);
+        let bodies = self.storages.bodies_r();
+
+        let b = bodies.get_body(body_key);
+        if let Some(body) = b {
+            if let BodyData::Rigid { contacts_to_report } = body.body_data {
+                contacts_to_report
+            } else {
+                0
+            }
+        } else {
+            0
+        }
+    }
+
+    fn contact_events(&self, body_tag: PhysicsRigidBodyTag, contacts: &mut Vec<ContactEvent<N>>) {
+        let c_key: Option<StoreKey> = {
+            let body_key = rigid_tag_to_store_key(body_tag);
+            let bodies = self.storages.bodies_r();
+
+            bodies.get_body(body_key).map(|b| b.collider_key).unwrap_or(None)
+        };
+
+        if let Some(c_key) = c_key {
+            //self.
+            unimplemented!();
+        }
+
     }
 }
