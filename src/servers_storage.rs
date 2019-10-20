@@ -52,7 +52,6 @@ pub struct ServersStorage<N: PtReal> {
     joints: RwLock<JointStorage<N, BodyStorage<N>>>,
     force_generators: RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>,
     shapes: RwLock<Storage<Box<RigidShape<N>>>>,
-    contacts: RwLock<Vec<ContactData<N>>>,
     watch_contacts: RwLock<Vec<StoreKey>>,
 }
 
@@ -65,7 +64,6 @@ impl<N: PtReal> ServersStorage<N> {
             joints: RwLock::new(JointStorage::default()),
             force_generators: RwLock::new(ForceGeneratorStorage::default()),
             shapes: RwLock::new(Storage::new(50, 50)),
-            contacts: RwLock::new(Vec::new()),
             watch_contacts: RwLock::new(Vec::new()),
         })
     }
