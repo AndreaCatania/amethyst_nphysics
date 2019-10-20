@@ -45,22 +45,22 @@ pub type ShapesStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N
 #[allow(missing_debug_implementations)]
 pub struct ServersStorage<N: PtReal> {
     pub(crate) gc: Arc<RwLock<PhysicsGarbageCollector>>,
-    bodies: Arc<RwLock<BodyStorage<N>>>,
-    colliders: Arc<RwLock<ColliderStorage<N, StoreKey>>>,
-    joints: Arc<RwLock<JointStorage<N, BodyStorage<N>>>>,
-    force_generators: Arc<RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>>,
-    shapes: Arc<RwLock<Storage<Box<RigidShape<N>>>>>,
+    bodies: RwLock<BodyStorage<N>>,
+    colliders: RwLock<ColliderStorage<N, StoreKey>>,
+    joints: RwLock<JointStorage<N, BodyStorage<N>>>,
+    force_generators: RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>,
+    shapes: RwLock<Storage<Box<RigidShape<N>>>>,
 }
 
 impl<N: PtReal> ServersStorage<N> {
     pub fn new() -> ServersStorages<N> {
         Arc::new(ServersStorage {
             gc: Arc::new(RwLock::new(PhysicsGarbageCollector::default())),
-            bodies: Arc::new(RwLock::new(BodyStorage::default())),
-            colliders: Arc::new(RwLock::new(ColliderStorage::default())),
-            joints: Arc::new(RwLock::new(JointStorage::default())),
-            force_generators: Arc::new(RwLock::new(ForceGeneratorStorage::default())),
-            shapes: Arc::new(RwLock::new(Storage::new(50, 50))),
+            bodies: RwLock::new(BodyStorage::default()),
+            colliders: RwLock::new(ColliderStorage::default()),
+            joints: RwLock::new(JointStorage::default()),
+            force_generators: RwLock::new(ForceGeneratorStorage::default()),
+            shapes: RwLock::new(Storage::new(50, 50)),
         })
     }
 }
