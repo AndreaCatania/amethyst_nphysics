@@ -87,7 +87,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                 let body = bodies.get_body(*body_key);
                 if let Some(mut body) = body {
                     match &body.body_data {
-                        BodyData::Rigid => {
+                        BodyData::Rigid { .. } => {
                             RBodyNpServer::drop_collider(&mut *body, &mut colliders);
                             let collider_desc = RBodyNpServer::create_collider_desc(&body, &*shape);
                             RBodyNpServer::install_collider(
@@ -96,7 +96,7 @@ impl<N: PtReal> ShapePhysicsServerTrait<N> for ShapeNpServer<N> {
                                 &mut colliders,
                             );
                         }
-                        BodyData::Area(_e) => {
+                        BodyData::Area(..) => {
                             AreaNpServer::drop_collider(&mut *body, &mut colliders);
                             let collider_desc = AreaNpServer::create_collider_desc(&body, &*shape);
                             AreaNpServer::install_collider(
