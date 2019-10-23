@@ -678,7 +678,7 @@ where
 
         if let Some(body) = bodies.get_body(body_key) {
             if let BodyData::Rigid { contacts, .. } = &body.body_data {
-                out_contacts.resize_with(contacts.len(), || ContactEvent::default());
+                out_contacts.resize_with(contacts.len(), ContactEvent::default);
                 out_contacts.copy_from_slice(contacts.as_slice());
                 return;
             }

@@ -198,7 +198,6 @@ impl<N: PtReal> WorldNpServer<N> {
         }
 
         {
-            // TODO parallelize this process please
             for body_key in watch_contacts.iter() {
                 let mut body = bodies.get_body(*body_key).unwrap();
                 let collider_key = body.collider_key;
@@ -226,9 +225,9 @@ impl<N: PtReal> WorldNpServer<N> {
                                     ContactEvent {
                                         other_body: store_key_to_rigid_tag(body_2_ud.store_key()),
                                         other_entity: body_2_ud.entity(),
-                                        contact_normal: -contact.contact.normal,
-                                        contact_location: contact.contact.world1,
-                                        contact_impulse: Vector3::zeros(), // TODO obtain this ?
+                                        normal: -contact.contact.normal,
+                                        location: contact.contact.world1,
+                                        impulse: Vector3::zeros(), // TODO obtain this ?
                                     }
                                 } else {
                                     // Invert
@@ -241,9 +240,9 @@ impl<N: PtReal> WorldNpServer<N> {
                                     ContactEvent {
                                         other_body: store_key_to_rigid_tag(body_1_ud.store_key()),
                                         other_entity: body_1_ud.entity(),
-                                        contact_normal: contact.contact.normal,
-                                        contact_location: contact.contact.world2,
-                                        contact_impulse: Vector3::zeros(), // TODO obtain this ?
+                                        normal: contact.contact.normal,
+                                        location: contact.contact.world2,
+                                        impulse: Vector3::zeros(), // TODO obtain this ?
                                     }
                                 };
 
