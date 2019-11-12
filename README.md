@@ -17,7 +17,7 @@ let game_data = GameDataBuilder::default()
     .with_bundle(PhysicsBundle::<f32, NPhysicsBackend>::new()).unwrap()
 ```
 
-You can use this trought [amethyst_physics].
+You can use this through [amethyst_physics].
 
 [NPhysics]: https://nphysics.org/
 [amethyst_physics]: https://github.com/AndreaCatania/amethyst_physics
