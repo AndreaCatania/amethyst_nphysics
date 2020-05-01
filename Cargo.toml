@@ -11,10 +11,10 @@ readme = "README.md"
 license = "MIT"
 
 [dependencies]
-amethyst_core = "0.8.0"
-amethyst_physics = "0.1.1"
+amethyst_core = "0.10.0"
+amethyst_physics = "0.2.0"
 log = "0.4.6"
-ncollide3d = "0.20.1"
-nphysics3d = "0.12.2"
+ncollide3d = "0.21.0"
+nphysics3d = "0.13.0"
 generational-arena = "0.2.3"
 alga = { version = "0.9.0", default-features = false }
