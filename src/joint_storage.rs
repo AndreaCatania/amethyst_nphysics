@@ -1,7 +1,7 @@
 use amethyst_physics::PtReal;
 use nphysics3d::{
     joint::{JointConstraint as NpJointConstraint, JointConstraintSet as NpJointConstraintSet},
-    object::{BodyPartHandle as NpBodyPartHandle, BodySet as NpBodySet},
+    object::{BodyHandle as NpBodyHandle, BodyPartHandle as NpBodyPartHandle},
 };
 
 use crate::{
@@ -11,23 +11,15 @@ use crate::{
 
 #[allow(missing_debug_implementations)]
 #[allow(clippy::type_complexity)]
-pub struct JointStorage<N: PtReal, S: NpBodySet<N>> {
-    storage: Storage<Joint<N, S>>,
+pub struct JointStorage<N: PtReal, Handle: NpBodyHandle> {
+    storage: Storage<Joint<N, Handle>>,
     /// A list of inserted ID, this list is decremented only when the function `pop_inserted_event` is called
-    inserted: Vec<(
-        StoreKey,
-        NpBodyPartHandle<S::Handle>,
-        NpBodyPartHandle<S::Handle>,
-    )>,
+    inserted: Vec<(StoreKey, NpBodyPartHandle<Handle>, NpBodyPartHandle<Handle>)>,
     /// A list of removed ID, this list is decremented only when the function `pop_removal_event` is called
-    removed: Vec<(
-        StoreKey,
-        NpBodyPartHandle<S::Handle>,
-        NpBodyPartHandle<S::Handle>,
-    )>,
+    removed: Vec<(StoreKey, NpBodyPartHandle<Handle>, NpBodyPartHandle<Handle>)>,
 }
 
-impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
+impl<N: PtReal, Handle: NpBodyHandle> JointStorage<N, Handle> {
     pub fn new() -> Self {
         JointStorage {
             storage: Storage::new(5, 15),
@@ -37,14 +29,14 @@ impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
     }
 }
 
-impl<N: PtReal, S: NpBodySet<N>> Default for JointStorage<N, S> {
+impl<N: PtReal, Handle: NpBodyHandle> Default for JointStorage<N, Handle> {
     fn default() -> Self {
         JointStorage::new()
     }
 }
 
-impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
-    pub fn insert(&mut self, joint: Joint<N, S>) -> StoreKey {
+impl<N: PtReal, Handle: NpBodyHandle> JointStorage<N, Handle> {
+    pub fn insert(&mut self, joint: Joint<N, Handle>) -> StoreKey {
         let notify_joint_created = joint.np_joint.is_some();
         let key = self.storage.insert(joint);
         if notify_joint_created {
@@ -94,13 +86,15 @@ impl<N: PtReal, S: NpBodySet<N>> JointStorage<N, S> {
     }
 
     /// Returns a `Mutex` guarded joint that can be used safely to get or set data.
-    pub fn get_joint(&self, key: StoreKey) -> Option<StorageGuard<'_, Joint<N, S>>> {
+    pub fn get_joint(&self, key: StoreKey) -> Option<StorageGuard<'_, Joint<N, Handle>>> {
         self.storage.get(key)
     }
 }
 
-impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointStorage<N, S> {
-    type JointConstraint = dyn NpJointConstraint<N, S>;
+impl<N: PtReal, Handle: NpBodyHandle + 'static> NpJointConstraintSet<N, Handle>
+    for JointStorage<N, Handle>
+{
+    type JointConstraint = dyn NpJointConstraint<N, Handle>;
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::JointConstraint> {
@@ -150,8 +144,8 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
         &mut self,
     ) -> Option<(
         Self::Handle,
-        NpBodyPartHandle<S::Handle>,
-        NpBodyPartHandle<S::Handle>,
+        NpBodyPartHandle<Handle>,
+        NpBodyPartHandle<Handle>,
     )> {
         self.inserted.pop()
     }
@@ -161,8 +155,8 @@ impl<N: PtReal, S: NpBodySet<N> + 'static> NpJointConstraintSet<N, S> for JointS
         &mut self,
     ) -> Option<(
         Self::Handle,
-        NpBodyPartHandle<S::Handle>,
-        NpBodyPartHandle<S::Handle>,
+        NpBodyPartHandle<Handle>,
+        NpBodyPartHandle<Handle>,
     )> {
         self.removed.pop()
     }

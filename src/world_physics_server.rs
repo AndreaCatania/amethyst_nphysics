@@ -11,7 +11,6 @@ use nphysics3d::world::{GeometricalWorld, MechanicalWorld};
 
 use crate::{
     body::BodyData,
-    body_storage::BodyStorage,
     conversors::*,
     servers_storage::{
         BodiesStorageWrite, CollidersStorageWrite, ServersStorages, WatchContactsRead,
@@ -24,7 +23,7 @@ use crate::{
 pub struct WorldNpServer<N: PtReal> {
     pub storages: ServersStorages<N>,
     pub geometrical_world: RwLock<GeometricalWorld<N, StoreKey, StoreKey>>,
-    pub mechanical_world: RwLock<MechanicalWorld<N, BodyStorage<N>, StoreKey>>,
+    pub mechanical_world: RwLock<MechanicalWorld<N, StoreKey, StoreKey>>,
 }
 
 impl<N: PtReal> WorldNpServer<N> {
@@ -105,7 +104,7 @@ impl<N: PtReal> WorldNpServer<N> {
 
     fn fetch_events(
         g_world: &mut GeometricalWorld<N, StoreKey, StoreKey>,
-        _m_world: &mut MechanicalWorld<N, BodyStorage<N>, StoreKey>, // Not yet used but will be with contact event
+        _m_world: &mut MechanicalWorld<N, StoreKey, StoreKey>, // Not yet used but will be with contact event
         watch_contacts: &WatchContactsRead<'_>,
         bodies: &mut BodiesStorageWrite<'_, N>,
         colliders: &mut CollidersStorageWrite<'_, N>,

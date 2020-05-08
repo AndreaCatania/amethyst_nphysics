@@ -17,12 +17,12 @@ pub type BodiesStorageWrite<'a, N> = RwLockWriteGuard<'a, BodyStorage<N>>;
 pub type BodiesStorageRead<'a, N> = RwLockReadGuard<'a, BodyStorage<N>>;
 pub type CollidersStorageWrite<'a, N> = RwLockWriteGuard<'a, ColliderStorage<N, StoreKey>>;
 pub type CollidersStorageRead<'a, N> = RwLockReadGuard<'a, ColliderStorage<N, StoreKey>>;
-pub type JointsStorageWrite<'a, N> = RwLockWriteGuard<'a, JointStorage<N, BodyStorage<N>>>;
-pub type JointsStorageRead<'a, N> = RwLockReadGuard<'a, JointStorage<N, BodyStorage<N>>>;
+pub type JointsStorageWrite<'a, N> = RwLockWriteGuard<'a, JointStorage<N, StoreKey>>;
+pub type JointsStorageRead<'a, N> = RwLockReadGuard<'a, JointStorage<N, StoreKey>>;
 pub type ForceGeneratorsStorageWrite<'a, N> =
-    RwLockWriteGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
+    RwLockWriteGuard<'a, ForceGeneratorStorage<N, StoreKey>>;
 pub type ForceGeneratorsStorageRead<'a, N> =
-    RwLockReadGuard<'a, ForceGeneratorStorage<N, BodyStorage<N>>>;
+    RwLockReadGuard<'a, ForceGeneratorStorage<N, StoreKey>>;
 pub type ShapesStorageWrite<'a, N> = RwLockWriteGuard<'a, Storage<Box<RigidShape<N>>>>;
 pub type ShapesStorageRead<'a, N> = RwLockReadGuard<'a, Storage<Box<RigidShape<N>>>>;
 pub type WatchContactsWrite<'a> = RwLockWriteGuard<'a, Vec<StoreKey>>;
@@ -49,8 +49,8 @@ pub struct ServersStorage<N: PtReal> {
     pub(crate) gc: Arc<RwLock<PhysicsGarbageCollector>>,
     bodies: RwLock<BodyStorage<N>>,
     colliders: RwLock<ColliderStorage<N, StoreKey>>,
-    joints: RwLock<JointStorage<N, BodyStorage<N>>>,
-    force_generators: RwLock<ForceGeneratorStorage<N, BodyStorage<N>>>,
+    joints: RwLock<JointStorage<N, StoreKey>>,
+    force_generators: RwLock<ForceGeneratorStorage<N, StoreKey>>,
     shapes: RwLock<Storage<Box<RigidShape<N>>>>,
     watch_contacts: RwLock<Vec<StoreKey>>,
 }

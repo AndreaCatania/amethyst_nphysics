@@ -3,7 +3,7 @@ use nphysics3d::{
     force_generator::{
         ForceGenerator as NpForceGenerator, ForceGeneratorSet as NpForceGeneratorSet,
     },
-    object::BodySet as NpBodySet,
+    object::BodyHandle as NpBodyHandle,
 };
 
 use crate::{
@@ -12,11 +12,11 @@ use crate::{
 };
 
 #[allow(missing_debug_implementations)]
-pub struct ForceGeneratorStorage<N: PtReal, S: NpBodySet<N>> {
-    storage: Storage<ForceGenerator<N, S>>,
+pub struct ForceGeneratorStorage<N: PtReal, Handle: NpBodyHandle> {
+    storage: Storage<ForceGenerator<N, Handle>>,
 }
 
-impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
+impl<N: PtReal, Handle: NpBodyHandle> ForceGeneratorStorage<N, Handle> {
     pub fn new() -> Self {
         ForceGeneratorStorage {
             storage: Storage::new(5, 5),
@@ -24,14 +24,14 @@ impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
     }
 }
 
-impl<N: PtReal, S: NpBodySet<N>> Default for ForceGeneratorStorage<N, S> {
+impl<N: PtReal, Handle: NpBodyHandle> Default for ForceGeneratorStorage<N, Handle> {
     fn default() -> Self {
         ForceGeneratorStorage::new()
     }
 }
 
-impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
-    pub fn insert(&mut self, force_generator: ForceGenerator<N, S>) -> StoreKey {
+impl<N: PtReal, Handle: NpBodyHandle> ForceGeneratorStorage<N, Handle> {
+    pub fn insert(&mut self, force_generator: ForceGenerator<N, Handle>) -> StoreKey {
         self.storage.insert(force_generator)
     }
 
@@ -43,15 +43,15 @@ impl<N: PtReal, S: NpBodySet<N>> ForceGeneratorStorage<N, S> {
     pub fn get_force_generator(
         &self,
         key: StoreKey,
-    ) -> Option<StorageGuard<'_, ForceGenerator<N, S>>> {
+    ) -> Option<StorageGuard<'_, ForceGenerator<N, Handle>>> {
         self.storage.get(key)
     }
 }
 
-impl<N: PtReal, S: NpBodySet<N> + 'static> NpForceGeneratorSet<N, S>
-    for ForceGeneratorStorage<N, S>
+impl<N: PtReal, Handle: NpBodyHandle + 'static> NpForceGeneratorSet<N, Handle>
+    for ForceGeneratorStorage<N, Handle>
 {
-    type ForceGenerator = dyn NpForceGenerator<N, S>;
+    type ForceGenerator = dyn NpForceGenerator<N, Handle>;
     type Handle = StoreKey;
 
     fn get(&self, handle: Self::Handle) -> Option<&Self::ForceGenerator> {

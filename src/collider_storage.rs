@@ -84,21 +84,6 @@ impl<N: PtReal, BH: NpBodyHandle> ColliderSet<N, BH> for ColliderStorage<N, BH> 
         self.storage.unchecked_get_mut(handle)
     }
 
-    #[allow(clippy::type_complexity)]
-    fn get_pair_mut(
-        &mut self,
-        handle1: Self::Handle,
-        handle2: Self::Handle,
-    ) -> (
-        Option<&mut NpCollider<N, BH>>,
-        Option<&mut NpCollider<N, BH>>,
-    ) {
-        assert_ne!(handle1, handle2, "Both body handles must not be equal.");
-        let b1 = self.get_mut(handle1).map(|b| b as *mut NpCollider<N, BH>);
-        let b2 = self.get_mut(handle2).map(|b| b as *mut NpCollider<N, BH>);
-        unsafe { (b1.map(|b| &mut *b), b2.map(|b| &mut *b)) }
-    }
-
     fn contains(&self, handle: Self::Handle) -> bool {
         self.storage.has(handle)
     }

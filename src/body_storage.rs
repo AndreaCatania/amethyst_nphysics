@@ -56,44 +56,32 @@ impl<N: PtReal> BodyStorage<N> {
 }
 
 impl<N: PtReal> BodySet<N> for BodyStorage<N> {
-    type Body = dyn NpBody<N>;
     type Handle = StoreKey;
 
-    fn get(&self, handle: Self::Handle) -> Option<&Self::Body> {
+    fn get(&self, handle: Self::Handle) -> Option<&dyn NpBody<N>> {
         self.storage
             .unchecked_get(handle)
             .map(|v| v.np_body.as_ref())
     }
 
-    fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut Self::Body> {
+    fn get_mut(&mut self, handle: Self::Handle) -> Option<&mut dyn NpBody<N>> {
         self.storage
             .unchecked_get_mut(handle)
             .map(|v| v.np_body.as_mut())
-    }
-
-    fn get_pair_mut(
-        &mut self,
-        handle1: Self::Handle,
-        handle2: Self::Handle,
-    ) -> (Option<&mut Self::Body>, Option<&mut Self::Body>) {
-        assert_ne!(handle1, handle2, "Both body handles must not be equal.");
-        let b1 = self.get_mut(handle1).map(|b| b as *mut dyn NpBody<N>);
-        let b2 = self.get_mut(handle2).map(|b| b as *mut dyn NpBody<N>);
-        unsafe { (b1.map(|b| &mut *b), b2.map(|b| &mut *b)) }
     }
 
     fn contains(&self, handle: Self::Handle) -> bool {
         self.storage.has(handle)
     }
 
-    fn foreach(&self, mut f: impl FnMut(Self::Handle, &Self::Body)) {
+    fn foreach(&self, f: &mut dyn FnMut(Self::Handle, &dyn NpBody<N>)) {
         for (h, b) in self.storage.iter() {
             // Safe because NPhysics use this in single thread.
             unsafe { f(h, (*b.0.get()).np_body.as_ref()) }
         }
     }
 
-    fn foreach_mut(&mut self, mut f: impl FnMut(Self::Handle, &mut Self::Body)) {
+    fn foreach_mut(&mut self, f: &mut dyn FnMut(Self::Handle, &mut dyn NpBody<N>)) {
         for (h, b) in self.storage.iter_mut() {
             // Safe because NPhysics use this in single thread.
             unsafe { f(h, (*b.0.get()).np_body.as_mut()) }
